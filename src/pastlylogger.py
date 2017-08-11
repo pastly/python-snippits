@@ -16,8 +16,12 @@ class PastlyLogger:
     #   error, warn, and notice messages are appended to a.txt;
     #   b.txt is overwritten and info messages are appended to it;
     #   all debug messages are lost
+    #
+    # log_threads tells the logger whether or not to log thread names
     def __init__(self, error=None, warn=None, notice=None,
-        info=None, debug=None, overwrite=[]):
+        info=None, debug=None, overwrite=[], log_threads=False):
+
+        self.log_threads = log_threads
 
         # buffering=1 means line-based buffering
         if error:
@@ -84,14 +88,16 @@ class PastlyLogger:
             if not self.debug_fd_mutex.acquire(blocking=False):
                 self.debug_fd_mutex.release()
 
-    def _log_file(fd, lock, s, level):
+    def _log_file(fd, lock, log_threads, level, *s):
         assert fd
         lock.acquire()
         ts = datetime.now()
-        if current_thread():
-            fd.write('[{}] [{}] [{}] {}\n'.format(ts, level, current_thread().name,s))
+        if log_threads:
+            fd.write('[{}] [{}] [{}] {}\n'.format(ts, level,
+                current_thread().name, ' '.join([str(_) for _ in s])))
         else:
-            fd.write('[{}] [{}] {}\n'.format(ts, level, s))
+            fd.write('[{}] [{}] {}\n'.format(ts, level,
+                ' '.join([str(_) for _ in s])))
         lock.release()
 
     def flush(self):
@@ -101,27 +107,27 @@ class PastlyLogger:
         if self.info_fd: self.info_fd.flush()
         if self.debug_fd: self.debug_fd.flush()
 
-    def debug(self, s, level='debug'):
+    def debug(self, *s, level='debug'):
         if self.debug_fd: return PastlyLogger._log_file(
-            self.debug_fd, self.debug_fd_mutex, s, level)
+            self.debug_fd, self.debug_fd_mutex, self.log_threads, level, *s)
         return None
 
-    def info(self, s, level='info'):
+    def info(self, *s, level='info'):
         if self.info_fd: return PastlyLogger._log_file(
-            self.info_fd, self.info_fd_mutex, s, level)
-        else: return self.debug(s, level)
+            self.info_fd, self.info_fd_mutex, self.log_threads, level, *s)
+        else: return self.debug(*s, level=level)
 
-    def notice(self, s, level='notice'):
+    def notice(self, *s, level='notice'):
         if self.notice_fd: return PastlyLogger._log_file(
-            self.notice_fd, self.notice_fd_mutex, s, level)
-        else: return self.info(s, level)
+            self.notice_fd, self.notice_fd_mutex, self.log_threads, level, *s)
+        else: return self.info(*s, level=level)
 
-    def warn(self, s, level='warn'):
+    def warn(self, *s, level='warn'):
         if self.warn_fd: return PastlyLogger._log_file(
-            self.warn_fd, self.warn_fd_mutex, s, level)
-        else: return self.notice(s, level)
+            self.warn_fd, self.warn_fd_mutex, self.log_threads, level, *s)
+        else: return self.notice(*s, level=level)
 
-    def error(self, s, level='error'):
+    def error(self, *s, level='error'):
         if self.error_fd: return PastlyLogger._log_file(
-            self.error_fd, self.error_fd_mutex, s, level)
-        else: return self.warn(s, level)
+            self.error_fd, self.error_fd_mutex, self.log_threads, level, *s)
+        else: return self.warn(*s, level=level)
