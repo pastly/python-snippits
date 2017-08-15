@@ -18,10 +18,16 @@ class PastlyLogger:
     #   all debug messages are lost
     #
     # log_threads tells the logger whether or not to log thread names
+    #
+    # default tells the logger what level to log at when called with
+    # log('foobar') instead of log.info('foobar')
     def __init__(self, error=None, warn=None, notice=None,
-        info=None, debug=None, overwrite=[], log_threads=False):
+        info=None, debug=None, overwrite=[], log_threads=False,
+        default='notice'):
 
         self.log_threads = log_threads
+        assert default in ['debug','info','notice','warn','error']
+        self.default_level = default
 
         # buffering=1 means line-based buffering
         if error:
@@ -61,6 +67,13 @@ class PastlyLogger:
             self.debug_fd_mutex = None
 
         self.debug('Creating PastlyLogger instance')
+
+    def __call__(self, *s):
+        if self.default_level == 'debug': return self.debug(*s)
+        elif self.default_level == 'info': return self.info(*s)
+        elif self.default_level == 'notice': return self.notice(*s)
+        elif self.default_level == 'warn': return self.warn(*s)
+        elif self.default_level == 'error': return self.error(*s)
 
     def __del__(self):
         self.debug('Deleting PastlyLogger instance')
