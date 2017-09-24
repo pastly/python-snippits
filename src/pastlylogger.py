@@ -1,31 +1,41 @@
 from datetime import datetime
 from threading import Lock, current_thread
-# Logging class inspired by Tor's logging API
 class PastlyLogger:
-    # error, warn, etc. are file names to open for logging.
-    # If a log level doesn't have a file name given for it, messages destined
-    # for that level cascade down to the next noisiest level.
-    # Example 1: warn=foo.txt, debug=bar.txt
-    #   error and warn messages go to foo.txt, all other messages to bar.txt
-    # Example 2: notice=baz.txt
-    #   error, warn, and notice messages go to baz.txt, all others are lost
-    #
-    # overwrite is a list of log levels that should overwrite their log file
-    # when opening instead of appending.
-    # Example: notice=a.txt, info=b.txt, overwrite=['info']
-    #   error, warn, and notice messages are appended to a.txt;
-    #   b.txt is overwritten and info messages are appended to it;
-    #   all debug messages are lost
-    #
-    # log_threads tells the logger whether or not to log thread names
-    #
-    # default tells the logger what level to log at when called with
-    # log('foobar') instead of log.info('foobar')
+    """
+    PastlyLogger - logging class inspired by Tor's logging API
+
+    error, warn, etc. are file names to open for logging.
+    If a log level doesn't have a file name given for it, messages destined
+    for that level cascade down to the next noisiest level.
+    Example 1: warn=foo.txt, debug=bar.txt
+      error and warn messages go to foo.txt, all other messages to bar.txt
+    Example 2: notice=baz.txt
+      error, warn, and notice messages go to baz.txt, all others are lost
+
+    overwrite is a list of log levels that should overwrite their log file
+    when opening instead of appending.
+    Example: notice=a.txt, info=b.txt, overwrite=['info']
+      error, warn, and notice messages are appended to a.txt;
+      b.txt is overwritten and info messages are appended to it;
+      all debug messages are lost
+
+    log_threads tells the logger whether or not to log thread names
+
+    log_levels tells the logger whether or not to log the level (notice, info,
+    warn, etc.)
+
+    log_date tells the logger whether or not to log the date
+
+    default tells the logger what level to log at when called with
+    log('foobar') instead of log.info('foobar')
+    """
     def __init__(self, error=None, warn=None, notice=None,
         info=None, debug=None, overwrite=[], log_threads=False,
-        default='notice'):
+        default='notice', log_levels=True, log_date=True):
 
         self.log_threads = log_threads
+        self.log_levels = log_levels
+        self.log_date = log_date
         assert default in ['debug','info','notice','warn','error']
         self.default_level = default
 
@@ -101,16 +111,17 @@ class PastlyLogger:
             if not self.debug_fd_mutex.acquire(blocking=False):
                 self.debug_fd_mutex.release()
 
-    def _log_file(fd, lock, log_threads, level, *s):
+    def _log_file(fd, lock, log_levels, log_threads, log_date, level, *s):
         assert fd
+        prefix = []
+        if log_date: prefix.append('[{}]'.format(datetime.now()))
+        if log_levels: prefix.append('[{}]'.format(level))
+        if log_threads: prefix.append('[{}]'.format(current_thread().name))
+        prefix = ' '.join(prefix)
+        s = ' '.join([ str(s_) for s_ in s ])
+        if prefix: s = ' '.join([ prefix, s ])
         lock.acquire()
-        ts = datetime.now()
-        if log_threads:
-            fd.write('[{}] [{}] [{}] {}\n'.format(ts, level,
-                current_thread().name, ' '.join([str(_) for _ in s])))
-        else:
-            fd.write('[{}] [{}] {}\n'.format(ts, level,
-                ' '.join([str(_) for _ in s])))
+        fd.write('{}\n'.format(s))
         lock.release()
 
     def flush(self):
@@ -122,25 +133,30 @@ class PastlyLogger:
 
     def debug(self, *s, level='debug'):
         if self.debug_fd: return PastlyLogger._log_file(
-            self.debug_fd, self.debug_fd_mutex, self.log_threads, level, *s)
+                self.debug_fd, self.debug_fd_mutex, self.log_levels,
+                self.log_threads, self.log_date, level, *s)
         return None
 
     def info(self, *s, level='info'):
         if self.info_fd: return PastlyLogger._log_file(
-            self.info_fd, self.info_fd_mutex, self.log_threads, level, *s)
+                self.info_fd, self.info_fd_mutex, self.log_levels,
+                self.log_threads, self.log_date, level, *s)
         else: return self.debug(*s, level=level)
 
     def notice(self, *s, level='notice'):
         if self.notice_fd: return PastlyLogger._log_file(
-            self.notice_fd, self.notice_fd_mutex, self.log_threads, level, *s)
+                self.notice_fd, self.notice_fd_mutex, self.log_levels,
+                self.log_threads, self.log_date, level, *s)
         else: return self.info(*s, level=level)
 
     def warn(self, *s, level='warn'):
         if self.warn_fd: return PastlyLogger._log_file(
-            self.warn_fd, self.warn_fd_mutex, self.log_threads, level, *s)
+                self.warn_fd, self.warn_fd_mutex, self.log_levels,
+                self.log_threads, self.log_date, level, *s)
         else: return self.notice(*s, level=level)
 
     def error(self, *s, level='error'):
         if self.error_fd: return PastlyLogger._log_file(
-            self.error_fd, self.error_fd_mutex, self.log_threads, level, *s)
+                self.error_fd, self.error_fd_mutex, self.log_levels,
+                self.log_threads, self.log_date, level, *s)
         else: return self.warn(*s, level=level)
