@@ -19,3 +19,18 @@ def query_yes_no(question, default='yes'):
         elif choice in valid: return valid[choice]
         else: print('Please respond with "yes" or "no" '
             '(or "y" or "n").\n')
+
+# Not based on anything
+def query_string(question, default=None):
+    ''' Present a qusetion to the user via input() and return their answer as a
+    string. If a default is provided, then it is returned if the user just hits
+    <Enter>. The default can be an empty string, and even none-string values
+    (except None). It will always be wrapped in str() before it is returned,
+    however. '''
+    if default == None: prompt = ' '
+    else: prompt = ' (def: "{}") '.format(default)
+    while True:
+        print(question + prompt, end='')
+        answer = input()
+        if answer: return answer
+        if not answer and default != None: return str(default)
