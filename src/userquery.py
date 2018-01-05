@@ -20,7 +20,8 @@ def query_yes_no(question, default='yes'):
         else: print('Please respond with "yes" or "no" '
             '(or "y" or "n").\n')
 
-# Not based on anything
+# Remaining functions are not based on anything
+
 def query_string(question, default=None):
     ''' Present a qusetion to the user via input() and return their answer as a
     string. If a default is provided, then it is returned if the user just hits
@@ -34,3 +35,24 @@ def query_string(question, default=None):
         answer = input()
         if answer: return answer
         if not answer and default != None: return str(default)
+
+def query_int(question, default=None):
+    while True:
+        answer = query_string(question, default)
+        try: _ = int(answer)
+        except ValueError as e: continue
+        else: return int(answer)
+
+def query_list(question, choices):
+    ''' Present a list of choices to the user and return the one they picked.
+    '''
+    assert len(choices) > 0
+    print(question)
+    for i, choice in enumerate(choices): print('{:3d} {}'.format(i, choice))
+    while True:
+        print(question, end=' ')
+        answer = input()
+        try: answer = int(answer)
+        except ValueError as e: continue
+        if answer < 0 or answer > len(choices)-1: continue
+        return choices[answer]
