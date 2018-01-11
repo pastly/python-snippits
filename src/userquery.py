@@ -43,16 +43,24 @@ def query_int(question, default=None):
         except ValueError as e: continue
         else: return int(answer)
 
-def query_list(question, choices):
+def query_list(question, choices, default=None):
     ''' Present a list of choices to the user and return the one they picked.
+    If a default is provided, then it is returned if the user just hits
+    <Enter>. The default must be an index into the choices list.
     '''
     assert len(choices) > 0
+    if default != None:
+        assert isinstance(default, int)
+        assert default < len(choices)
+        question += ' (def: {})'.format(default)
     print(question)
     for i, choice in enumerate(choices): print('{:3d} {}'.format(i, choice))
     while True:
         print(question, end=' ')
         answer = input()
         try: answer = int(answer)
-        except ValueError as e: continue
+        except ValueError as e:
+            if answer == '' and default != None: return choices[default]
+            continue
         if answer < 0 or answer > len(choices)-1: continue
         return choices[answer]
