@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser
-import time
+import stem
 from stem.control import Controller
 from curses import wrapper
+import time
+
 
 def myprint(s, *words):
     s.addstr(' '.join([str(w) for w in words])+'\n')
+
 
 def print_stats(scr, cont):
     all_circs = []
@@ -31,9 +34,26 @@ def print_stats(scr, cont):
             len([c for c in all_circs if c['used']]), len(all_circs)))
 
 
+def _get_controller_port(args):
+    return Controller.from_port(port=args.ctrl_port)
+
+
+def _get_controller_socket(args):
+    return Controller.from_socket_file(path=args.socket)
+
+
+def get_controller(args):
+    try:
+        cont = _get_controller_port(args)
+    except stem.SocketError:
+        cont = _get_controller_socket(args)
+    return cont
+
+
 def main(stdscr, args):
+    #cont = get_controller(args)
     stdscr.clear()
-    with Controller.from_port(port=args.ctrl_port) as cont:
+    with get_controller(args) as cont:
         cont.authenticate()
         assert cont.is_authenticated()
         while True:
@@ -48,6 +68,10 @@ def pre_main():
     parser.add_argument(
         '-p', '--ctrl-port', metavar='PORT', type=int,
         help='Port on which to control the tor client', default=9051)
+    parser.add_argument(
+        '-s', '--socket', metavar='SOCK', type=str,
+        help='Path to socket with which to control the tor client',
+        default='/var/run/tor/control')
     parser.add_argument('-i', '--interval', metavar='SECS', type=float,
             help='How often to update screen', default=1.0)
     args = parser.parse_args()
