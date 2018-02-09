@@ -5,6 +5,7 @@ import os, http.server
 def main(args):
     os.chdir(args.directory)
     addr = ('' ,args.port)
+    print('Serving', args.directory, 'on', addr)
     httpd = http.server.HTTPServer(addr, http.server.SimpleHTTPRequestHandler)
     httpd.serve_forever()
 
