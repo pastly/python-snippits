@@ -71,8 +71,8 @@ def main(args, pdf):
 if __name__ == '__main__':
     parser = ArgumentParser(
         formatter_class=ArgumentDefaultsHelpFormatter,
-        description='Takes one or more lists of values, one per line, and '
-        'plots a CDF of them. Values may either be given on stdin or read '
+        description="Takes one or more lists of (x, y) points, 1 per line, and '
+        'plots a line of them. Values may either be given on stdin or read '
         'from one or more files.')
     parser.add_argument(
         '-i', '--input', nargs=2, metavar=('FNAME', 'LABEL'),
