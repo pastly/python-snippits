@@ -11,7 +11,7 @@ def main(args):
 
 if __name__ == '__main__':
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-p', '--port', default=8000,
+    parser.add_argument('-p', '--port', default=8000, type=int,
             help='Port on which to listen')
     parser.add_argument('-d', '--directory', metavar='DIR', default=os.getcwd(),
             help='Directory to serve')
