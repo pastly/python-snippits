@@ -54,7 +54,6 @@ def get_controller(args):
 
 
 def main(stdscr, args):
-    #cont = get_controller(args)
     stdscr.clear()
     with get_controller(args) as cont:
         cont.authenticate()
@@ -64,6 +63,7 @@ def main(stdscr, args):
             print_stats(stdscr, cont, args.only_used)
             stdscr.refresh()
             time.sleep(args.interval)
+
 
 def pre_main():
     parser = ArgumentParser(
@@ -75,14 +75,18 @@ def pre_main():
         '-s', '--socket', metavar='SOCK', type=str,
         help='Path to socket with which to control the tor client',
         default='/var/run/tor/control')
-    parser.add_argument('-i', '--interval', metavar='SECS', type=float,
-            help='How often to update screen', default=1.0)
+    parser.add_argument(
+        '-i', '--interval', metavar='SECS', type=float,
+        help='How often to update screen', default=1.0)
     parser.add_argument(
         '--only-used', action='store_true',
         help='Only print circuits with 1 or more streams')
     args = parser.parse_args()
-    return wrapper(main,args)
+    return wrapper(main, args)
 
-if __name__=='__main__':
-    try: exit(pre_main())
-    except KeyboardInterrupt: pass
+
+if __name__ == '__main__':
+    try:
+        exit(pre_main())
+    except KeyboardInterrupt:
+        pass
