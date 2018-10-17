@@ -10,7 +10,7 @@ def myprint(s, *words):
     s.addstr(' '.join([str(w) for w in words])+'\n')
 
 
-def print_stats(scr, cont):
+def print_stats(scr, cont, only_used_circs):
     all_circs = []
     all_streams = cont.get_streams()
     for circ in cont.get_circuits():
@@ -28,7 +28,10 @@ def print_stats(scr, cont):
         s += ' {} {}'.format(circ['id'], ' '.join(circ['path']))
         if circ['used']:
             s += ' (' + ','.join(circ['targets']) + ')'
-        myprint(scr, s)
+            if only_used_circs:
+                myprint(scr, s)
+        if not only_used_circs:
+            myprint(scr, s)
     myprint(
         scr, len(all_streams), 'streams; {}/{} circuits in use'.format(
             len([c for c in all_circs if c['used']]), len(all_circs)))
@@ -58,7 +61,7 @@ def main(stdscr, args):
         assert cont.is_authenticated()
         while True:
             stdscr.erase()
-            print_stats(stdscr, cont)
+            print_stats(stdscr, cont, args.only_used)
             stdscr.refresh()
             time.sleep(args.interval)
 
@@ -74,6 +77,9 @@ def pre_main():
         default='/var/run/tor/control')
     parser.add_argument('-i', '--interval', metavar='SECS', type=float,
             help='How often to update screen', default=1.0)
+    parser.add_argument(
+        '--only-used', action='store_true',
+        help='Only print circuits with 1 or more streams')
     args = parser.parse_args()
     return wrapper(main,args)
 
