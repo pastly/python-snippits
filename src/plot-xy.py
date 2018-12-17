@@ -11,6 +11,8 @@ plt.rcParams.update({
     'axes.grid': True,
 })
 
+colors = "krbgcmy"
+color_idx = 0
 
 def get_all_values_from_fd(fd):
     values = []
@@ -32,7 +34,8 @@ def main(args, pdf):
             values = random.sample(values, args.max_points)
         x = [v[0] for v in values]
         y = [v[1] for v in values]
-        plt.plot(x, y)
+        plt.plot(x, y, c=colors[color_idx])
+        color_idx += 1
         plt.xlim(xmin=min(x), xmax=max(x))
         plt.ylim(ymin=min(y), ymax=max(y))
     else:
@@ -55,7 +58,7 @@ def main(args, pdf):
                 all_min_y = this_min_y
             if all_max_y is None or this_max_y > all_max_y:
                 all_max_y = this_max_y
-            plt.plot(x, y, label=label)
+            plt.plot(x, y, label=label, c=colors[color_idx])
         plt.xlim(xmin=all_min_x, xmax=all_max_x)
         plt.ylim(ymin=all_min_y, ymax=all_max_y)
         plt.legend(loc='lower right')
