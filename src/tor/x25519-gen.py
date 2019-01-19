@@ -22,8 +22,8 @@ def key_str(key):
 def main():
     priv_key = nacl.public.PrivateKey.generate()
     pub_key = priv_key.public_key
-    print('public:  %s' % key_str(priv_key))
-    print('private: %s' % key_str(pub_key))
+    print('public:  %s' % key_str(pub_key))
+    print('private: %s' % key_str(priv_key))
 
 
 if __name__ == '__main__':
