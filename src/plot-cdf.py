@@ -32,10 +32,28 @@ def getcdf(data):
 def get_all_values_from_fd(fd):
     values = []
     for line in fd:
-        line = line.strip() 
+        line = line.strip()
         try: values.append(float(line))
         except: print('ignoring', line)
     return values
+
+def print_percentiles(label, values):
+    try:
+        from scipy.stats import scoreatpercentile as percentile
+    except ImportError:
+        print('WARN: no scipy means no percentile stats printed')
+        return
+    d = {
+        0: min(values),
+        5: percentile(values, 5),
+        25: percentile(values, 25),
+        50: percentile(values, 50),
+        75: percentile(values, 75),
+        95: percentile(values, 95),
+        100: max(values),
+    }
+    for k, v in d.items():
+        print('%s: %d percentile: %f' % (label, k, v))
 
 def main(args, pdf):
     plt.figure()
@@ -44,6 +62,7 @@ def main(args, pdf):
         if args.max_points >= 0 and len(values) > args.max_points:
             values = random.sample(values, args.max_points)
         plt.plot(*getcdf(values))
+        print_percentiles('stdin', values)
         plt.xlim(xmin=min(values), xmax=max(values))
     else:
         all_min, all_max = None, None
@@ -56,6 +75,7 @@ def main(args, pdf):
             if all_min == None or this_min < all_min: all_min = this_min
             if all_max == None or this_max > all_max: all_max = this_max
             plt.plot(*getcdf(values), label=label)
+            print_percentiles(label, values)
         plt.xlim(xmin=all_min, xmax=all_max)
         plt.legend(loc='lower right')
     plt.ylim(ymin=0, ymax=1)
