@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser
-import stem
 from stem.control import Controller
 from curses import wrapper
 import time
@@ -46,9 +45,9 @@ def _get_controller_socket(args):
 
 
 def get_controller(args):
-    try:
+    if args.ctrl_port:
         cont = _get_controller_port(args)
-    except stem.SocketError:
+    else:
         cont = _get_controller_socket(args)
     return cont
 
@@ -70,11 +69,13 @@ def pre_main():
             formatter_class=ArgumentDefaultsHelpFormatter)
     parser.add_argument(
         '-p', '--ctrl-port', metavar='PORT', type=int,
-        help='Port on which to control the tor client', default=9051)
+        help='Port on which to control the tor client. 9051 is a common '
+        'default for little-t tor; 9151 is probably what your Tor Browser '
+        'is using.', default=None)
     parser.add_argument(
         '-s', '--socket', metavar='SOCK', type=str,
         help='Path to socket with which to control the tor client',
-        default='/var/run/tor/control')
+        default=None)
     parser.add_argument(
         '-i', '--interval', metavar='SECS', type=float,
         help='How often to update screen', default=1.0)
@@ -82,6 +83,9 @@ def pre_main():
         '--only-used', action='store_true',
         help='Only print circuits with 1 or more streams')
     args = parser.parse_args()
+    if not args.ctrl_port and not args.socket:
+        print('Must give control port or socket')
+        return 1
     return wrapper(main, args)
 
 
