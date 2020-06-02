@@ -122,7 +122,7 @@ if __name__ == '__main__':
         '-s', '--ctrl-socket', type=str, help='Path to a Tor ControlSocket. If '
         'both this and --ctrl-port are given, this wins')
     parser.add_argument(
-        '-p', '--ctrl-port', type=str, help='A Tor ControlPort')
+        '-p', '--ctrl-port', type=int, help='A Tor ControlPort')
     args = parser.parse_args()
     args.circuit_list = os.path.abspath(args.circuit_list)
     try:
