@@ -5,11 +5,11 @@ fname="$1"
 # Hostname to use for ssh. Do any additional ssh config in ~/.ssh/config (e.g.
 # public key auth, username, port).
 ssh_host=pasteserver
-# Directory in which the volitile subdirectory already exists
+# Directory in which the volatile subdirectory already exists
 dname="/tank/pastedump"
 # Hostnames at which the webserver can be reached
 host1="p.pastly.xyz"
 host2="tgmqry5eeyaojen77lm6zigwcri5uq5dh5alyfgtuyghoz7nxjjh3vyd.onion"
-ssh pasteserver "cat > $dname/volitile/$fname"
-echo "https://$host1/volitile/$fname"
-echo "http://$host2/volitile/$fname"
+ssh pasteserver "cat > $dname/volatile/$fname"
+echo "https://$host1/volatile/$fname"
+echo "http://$host2/volatile/$fname"
