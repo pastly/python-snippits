@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 import base64
+import os
+import sys
 try:
     import nacl.public
 except ImportError:
@@ -19,12 +21,22 @@ def key_str(key):
     return s
 
 
-def main():
+def main(*args):
     priv_key = nacl.public.PrivateKey.generate()
     pub_key = priv_key.public_key
-    print('public:  %s' % key_str(pub_key))
-    print('private: %s' % key_str(priv_key))
+    if len(args) > 0:
+        name = args[0]
+        if os.path.exists("../hostname"):
+            hostname = open("../hostname").read().strip().removesuffix(".onion")
+        else:
+            hostname = "your-onion-address-here-without-dot-onion-suffix"
+        print('%s:descriptor:x25519:%s' % (hostname, key_str(priv_key)), file=open("%s.auth_private" % name, "w+"))
+        os.chmod("%s.auth_private" % name, 0o600)
+        print('descriptor:x25519:%s' % key_str(pub_key), file=open("%s.auth" % name, "w+"))
+    else:
+        print('public:  %s' % key_str(pub_key))
+        print('private: %s' % key_str(priv_key))
 
 
 if __name__ == '__main__':
-    exit(main())
+    exit(main(*sys.argv[1:]))
